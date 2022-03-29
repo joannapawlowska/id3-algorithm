@@ -10,6 +10,21 @@ import java.util.List;
 class MathTest {
 
     @Test
+    void shouldRoundHalfUp() {
+        //given
+        double n1 = 1205.6348;
+        double n2 = 1205.6351;
+
+        //when
+        double actual1 = Math.round(n1, 2);
+        double actual2 = Math.round(n2, 2);
+
+        //then
+        Assertions.assertEquals(1205.63, actual1);
+        Assertions.assertEquals(1205.64, actual2);
+    }
+
+    @Test
     void shouldCalculateLog2() {
         //given
         double n = 8;
