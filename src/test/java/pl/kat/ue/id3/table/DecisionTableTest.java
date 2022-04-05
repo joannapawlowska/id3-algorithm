@@ -139,23 +139,23 @@ class DecisionTableTest {
         DecisionTable decisionTable = new DecisionTable(table);
 
         //when
-        int actual = decisionTable.getAttributeToDivideBy();
+        int actual = decisionTable.extractAttributeToDivideBy();
 
         //then
         Assertions.assertEquals(0, actual);
     }
 
     @Test
-    void shouldReturnWhetherIsHomogenous() {
+    void shouldReturnMaxGainRatio() {
         //given
         String[][] table = prepareTable();
         DecisionTable decisionTable = new DecisionTable(table);
 
         //when
-        boolean actual = decisionTable.isHomogenous();
+        double actual = decisionTable.getMaxGainRatio();
 
         //then
-        Assertions.assertFalse(actual);
+        Assertions.assertNotEquals(0, actual);
     }
 
     @Test

@@ -17,7 +17,10 @@ public class DecisionTable {
     private final Map<String, Integer> decisionMetadata;
     private final int decisionAttribute;
     private final int objectNumber;
+    @Getter
     private int attributeToDivideBy;
+    @Getter
+    private double maxGainRatio;
 
     public DecisionTable(String[][] table) {
         this.table = table;
@@ -25,6 +28,7 @@ public class DecisionTable {
         this.objectNumber = table.length;
         this.attributeMetadata = extractAttributesMetadata();
         this.decisionMetadata = extractDecisionsMetadata();
+        this.attributeToDivideBy = extractAttributeToDivideBy();
     }
 
     public DecisionTable getSubTable(Set<Integer> indices) {
@@ -112,20 +116,13 @@ public class DecisionTable {
                 .toArray();
     }
 
-    public int getAttributeToDivideBy() {
+    public int extractAttributeToDivideBy() {
         double[] gainRatio = getGainRatio();
         attributeToDivideBy = IntStream.range(0, gainRatio.length)
                 .reduce((a, b) -> gainRatio[a] < gainRatio[b] ? b : a)
                 .getAsInt();
+        maxGainRatio = gainRatio[attributeToDivideBy];
         return attributeToDivideBy;
-    }
-
-    public boolean isHomogenous() {
-        return Arrays.stream(attributeMetadata)
-                .flatMap(Collection::stream)
-                .flatMap(valueMetadata -> valueMetadata.getDecisionMetadata().keySet().stream())
-                .distinct()
-                .count() == 1;
     }
 
     public Set<ValueMetadata> getValuesOfDividingAttribute() {

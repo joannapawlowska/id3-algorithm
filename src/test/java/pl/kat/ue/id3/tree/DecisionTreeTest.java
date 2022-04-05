@@ -2,10 +2,15 @@ package pl.kat.ue.id3.tree;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import pl.kat.ue.id3.table.DecisionTable;
+import pl.kat.ue.id3.utils.DataSetReader;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 class DecisionTreeTest {
 
@@ -25,12 +30,13 @@ class DecisionTreeTest {
         //given
         setUp();
         DecisionTree tree = prepareTree();
-        String expected = "a0:\n" +
-                "\tnew -> up\n" +
-                "\tmed -> a1:\n" +
-                "\t\tyes -> down\n" +
-                "\t\tno -> up\n" +
-                "\told -> down\n";
+        String expected =
+                "attribute: 0\n" +
+                        "\t\t\tnew -> up\n" +
+                        "\t\t\tmed -> attribute: 1\n" +
+                        "\t\t\t\t\t\tyes -> down\n" +
+                        "\t\t\t\t\t\tno -> up\n" +
+                        "\t\t\told -> down\n";
 
         //when
         tree.traverse();
@@ -38,6 +44,49 @@ class DecisionTreeTest {
         //then
         Assertions.assertEquals(expected, outCaptor.toString());
         tearDown();
+    }
+
+    @Test
+    void shouldTraverseTreeForLargeDataSetFromFile() throws IOException {
+        //given
+        setUp();
+        String expected = Files.readAllLines(Path.of("./src/test/resources/car_result.txt"))
+                .stream()
+                .map(line -> line.replace("->Atrybut", " -> attribute")
+                        .replace("Atrybut", "attribute")
+                        .replace("-> D:", "->")
+                        .replaceAll(" {10}", "\t\t\t"))
+                .collect(Collectors.joining("\n")) + "\n";
+
+        DecisionTree tree = DecisionTree.createTree(DataSetReader.loadDataSet("./src/test/resources/car.data", ","));
+        convertForProperDisplay(tree.getRoot());
+
+        //when
+        tree.traverse();
+
+        //then
+        Assertions.assertEquals(expected, outCaptor.toString());
+        tearDown();
+    }
+
+    private static void convertForProperDisplay(Node node) {
+        String label = node.getLabel();
+        if (isInteger(label)) {
+            node.setLabel(Integer.parseInt(label) + 1);
+        }
+        node.getChildren().sort(Comparator.comparing(Node::getBranchLabel));
+        for (Node child : node.getChildren()) {
+            convertForProperDisplay(child);
+        }
+    }
+
+    public static boolean isInteger(String input) {
+        try {
+            Integer.parseInt(input);
+            return true;
+        } catch (final NumberFormatException e) {
+            return false;
+        }
     }
 
     private DecisionTree prepareTree() {
@@ -60,10 +109,9 @@ class DecisionTreeTest {
     void shouldCreateTree() {
         //given
         String[][] table = prepareTable();
-        DecisionTable decisionTable = new DecisionTable(table);
 
         //when
-        DecisionTree tree = DecisionTree.createTree(decisionTable);
+        DecisionTree tree = DecisionTree.createTree(table);
 
         //then
         Node root = tree.getRoot();

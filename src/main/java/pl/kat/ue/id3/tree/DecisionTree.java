@@ -13,8 +13,9 @@ public class DecisionTree {
         this.root = root;
     }
 
-    public static DecisionTree createTree(DecisionTable decisionTable) {
-        Node root = new Node(null, decisionTable);
+    public static DecisionTree createTree(String[][] data) {
+        DecisionTable table = new DecisionTable(data);
+        Node root = new Node(null, table);
         createTree(root);
         return new DecisionTree(root);
     }
@@ -22,12 +23,12 @@ public class DecisionTree {
     private static void createTree(Node node) {
         DecisionTable table = node.getDecisionTable();
 
-        if (table.isHomogenous()) {
+        if (table.getMaxGainRatio() == 0) {
             node.setLabel(table.getDecisionClass());
             return;
         }
 
-        node.setLabel(table.getAttributeToDivideBy());
+        node.setLabel(table.extractAttributeToDivideBy());
 
         for (ValueMetadata metadata : table.getValuesOfDividingAttribute()) {
             Node child = new Node(metadata.getValue(), table.getSubTable(metadata.getIndices()));
@@ -50,19 +51,19 @@ public class DecisionTree {
             printNode(node.getLabel(), node.getBranchLabel(), indent);
         }
         for (Node child : node.getChildren()) {
-            traverseTree(child, indent + "\t");
+            traverseTree(child, indent + "\t\t\t");
         }
     }
 
-    private static void printLeaf(String value, String branchLabel, String indent) {
-        System.out.printf("%s%s -> %s\n", indent, branchLabel, value);
+    private static void printLeaf(String label, String branchLabel, String indent) {
+        System.out.printf("%s%s -> %s\n", indent, branchLabel, label);
     }
 
-    private static void printNode(String value, String branchLabel, String indent) {
-        System.out.printf("%s%s -> a%s:\n", indent, branchLabel, value);
+    private static void printNode(String label, String branchLabel, String indent) {
+        System.out.printf("%s%s -> attribute: %s\n", indent, branchLabel, label);
     }
 
-    private static void printRoot(String value) {
-        System.out.printf("a%s:\n", value);
+    private static void printRoot(String label) {
+        System.out.printf("attribute: %s\n", label);
     }
 }
