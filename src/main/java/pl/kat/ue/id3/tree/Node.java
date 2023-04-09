@@ -34,7 +34,11 @@ public class Node {
     }
 
     public void addChildren(Node... child) {
-        Arrays.asList(child).forEach(this::addChild);
+        this.addChildren(Arrays.asList(child));
+    }
+
+    public void addChildren(List<Node> children) {
+        children.forEach(this::addChild);
     }
 
     public void setLabel(String label) {

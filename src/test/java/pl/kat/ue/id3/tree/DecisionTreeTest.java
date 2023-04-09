@@ -102,7 +102,7 @@ class DecisionTreeTest {
         root.addChildren(child1, child2, child3);
         child2.addChildren(child2a, child2b);
 
-        return new DecisionTree(root);
+        return new DecisionTree(root, null);
     }
 
     @Test

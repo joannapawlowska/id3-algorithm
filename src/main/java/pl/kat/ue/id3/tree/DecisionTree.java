@@ -4,20 +4,29 @@ import lombok.Getter;
 import pl.kat.ue.id3.table.DecisionTable;
 import pl.kat.ue.id3.table.ValueMetadata;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 public class DecisionTree {
 
     private final Node root;
+    private List<String> decisionClasses;
 
-    protected DecisionTree(Node root) {
+    public DecisionTree(Node root) {
         this.root = root;
+    }
+
+    protected DecisionTree(Node root, List<String> decisionClasses) {
+        this.root = root;
+        this.decisionClasses = decisionClasses;
     }
 
     public static DecisionTree createTree(String[][] data) {
         DecisionTable table = new DecisionTable(data);
         Node root = new Node(null, table);
         createTree(root);
-        return new DecisionTree(root);
+        return new DecisionTree(root, new ArrayList<>(table.getDecisionMetadata().keySet()));
     }
 
     private static void createTree(Node node) {
@@ -42,9 +51,11 @@ public class DecisionTree {
     }
 
     private static void traverseTree(Node node, String indent) {
-        if (node.isLeaf()) {
+        if (node.isLeaf() && !node.isRoot()) {
             printLeaf(node.getLabel(), node.getBranchLabel(), indent);
             return;
+        } else if (node.isLeaf() && node.isRoot()) {
+            printRootLeaf(node.getLabel());
         } else if (node.isRoot()) {
             printRoot(node.getLabel());
         } else {
@@ -65,5 +76,26 @@ public class DecisionTree {
 
     private static void printRoot(String label) {
         System.out.printf("attribute: %s\n", label);
+    }
+
+    private static void printRootLeaf(String label) {
+        System.out.printf("each decision -> %s\n", label);
+    }
+
+    public String predict(String[] object) {
+        return traverseForPrediction(root, object);
+    }
+
+    private static String traverseForPrediction(Node node, String[] object) {
+        if (node.isLeaf()) {
+            return node.getLabel();
+        }
+        int attributeNumber = Integer.parseInt(node.getLabel());
+        for (Node child : node.getChildren()) {
+            if (child.getBranchLabel().equals(object[attributeNumber])) {
+                return traverseForPrediction(child, object);
+            }
+        }
+        return null;
     }
 }
